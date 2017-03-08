@@ -7,10 +7,34 @@ Open Chrome from Terminal with following command:
 	open /Applications/Google\ Chrome.app --args --allow-file-access-from-files 
 */
 
+
+// CLASSES //
+// Notes: You cannot simply add "new Character()" to a scene because you would adding the entire clash, and not the ThreeJS object. 
+// The class object would have a .mesh property that you could add, but we use the getMesh() function for best practice.
+	// This way, nobody can edit the mesh directly(?)
+class Character {
+	constructor () {
+		'use strict'
+		// Create our Character Mesh
+		this.texture = loader.load( 'textures/character/f1.png' );
+		this.material = new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, map: this.texture, transparent: true } );
+		this.mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry(20,20), this.material );
+		this.mesh.position.y = 0;
+		this.mesh.castShadow = true;
+		this.mesh.receiveShadow = true;
+	}
+	getMesh(){
+		return this.mesh;
+	}
+};
+
+
+// INTIALIZATION FUNCTIONS //
+
 Physijs.scripts.worker = './js/physijs_worker.js';
 Physijs.scripts.ammo = './ammo.js';
 
-var initScene, render, renderer, scene, camera, box, characterMesh, characterArray, loader;
+var initScene, render, renderer, scene, camera, box, characterMesh, characterArray, loader, controls;
 
 function init() {
 	initGraphics();
@@ -24,6 +48,30 @@ function init() {
 	initInput();
 
 	requestAnimationFrame( render );
+}
+
+function initGraphics() {
+	renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.getElementById( 'viewport' ).appendChild( renderer.domElement );
+
+    scene = new Physijs.Scene;
+
+    // Texture Loader
+    loader = new THREE.TextureLoader();
+
+    // Camera
+    camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        1,
+        1000
+    );
+    camera.position.set( 0, 0, 100 );
+    camera.lookAt( scene.position );
+    scene.add( camera );
+
+    window.addEventListener( 'resize', onWindowResize, false );
 }
 
 function onWindowResize() {
@@ -69,10 +117,11 @@ function setControls() {
             return;
         }
         // Update the character's direction
-        user.setDirection(controls);
+        // user.setDirection(controls);
 	})
 
 }
+
 
 function initInput() {
 
@@ -81,8 +130,7 @@ function initInput() {
 		console.log("kjdlaf")
 		characterMesh.position.x -= movementSize;
 
-		characterMesh.material.map = loader.load( characterArray[1][0] );
-		characterMesh.material.alphaMap = loader.load( characterArray[1][1] );
+		characterMesh.material.map = loader.load( characterArray[1] );
 		characterMesh.material.needsUpdate = true;
 	}	
 	function moveRight() {
@@ -125,36 +173,12 @@ function initInput() {
 
     window.addEventListener( 'keyup', function( event ) {
 
-	    characterMesh.material.map = loader.load( characterArray[0][0] );
-		characterMesh.material.alphaMap = loader.load( characterArray[0][1] );
+	    characterMesh.material.map = loader.load( characterArray[0] );
 		characterMesh.material.needsUpdate = true;
 
     }, false );
 }
 
-function initGraphics() {
-	renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    document.getElementById( 'viewport' ).appendChild( renderer.domElement );
-
-    scene = new Physijs.Scene;
-
-    // Texture Loader
-    loader = new THREE.TextureLoader();
-
-    // Camera
-    camera = new THREE.PerspectiveCamera(
-        45,
-        window.innerWidth / window.innerHeight,
-        1,
-        1000
-    );
-    camera.position.set( 0, 0, 100 );
-    camera.lookAt( scene.position );
-    scene.add( camera );
-
-    window.addEventListener( 'resize', onWindowResize, false );
-}
 
 function createObjects() {
 	// Lights
@@ -210,20 +234,24 @@ function createObjects() {
 
 
     // Character
-	var characterTexture = loader.load( 'textures/character/f1.png' );
-	var characterTextureAlpha = loader.load( 'textures/character/f1_alpha.png' );
-	characterArray = [['textures/character/f1.png', 'textures/character/f1_alpha.png'], ['textures/character/f2.png', 'textures/character/f2_alpha.png']]
 
-	var characterMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, map: characterTexture, alphaMap: characterTextureAlpha } );
-	characterMaterial.transparent = true;
+	var charactermesh = new Character()
+	scene.add( charactermesh.getMesh() );
+	// var characterTexture = loader.load( 'textures/character/f1.png' );
+	// var characterTextureAlpha = loader.load( 'textures/character/f1_alpha.png' );
+	// characterArray = ['textures/character/f1.png', 'textures/character/f2.png']
 
-	characterMesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 20, 20 ), characterMaterial );
-	characterMesh.position.y = 0;
-	characterMesh.castShadow = true;
-	characterMesh.receiveShadow = true;
-	scene.add( characterMesh );
+	// var characterMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, map: characterTexture, transparent: true } );
+
+	// characterMesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 20, 20 ), characterMaterial );
+	// characterMesh.position.y = 0;
+	// characterMesh.castShadow = true;
+	// characterMesh.receiveShadow = true;
+	// scene.add( characterMesh );
 
 };
+
+
 
 function render() {
     scene.simulate(); // run physics
@@ -234,4 +262,25 @@ function render() {
 
 
 window.onload = init();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
