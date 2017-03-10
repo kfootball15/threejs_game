@@ -18,6 +18,7 @@ var loader = new THREE.TextureLoader();
 Physijs.scripts.worker = './js/physijs_worker.js';
 Physijs.scripts.ammo = './ammo.js';
 
+
 // ------- //
 // CLASSES //
 // ------- //
@@ -36,7 +37,7 @@ class Character {
 		this.material = new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, map: this.texture, transparent: true } );
 		this.mesh = new THREE.Object3D();
 		this.drawing = new THREE.Mesh( new THREE.PlaneBufferGeometry(20,20), this.material );
-		this.sphere = new THREE.Mesh( new THREE.SphereGeometry(4,32,32), new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x111111}))
+		this.sphere = new THREE.Mesh( new THREE.SphereGeometry(2,8,8), new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x111111}))
 		this.sphere.position.y = 0
 			// Add our sphere and drawing to our mesh
 		this.mesh.add(this.drawing)
@@ -74,18 +75,9 @@ class Character {
 		    return true;	
 		}
 	}
-	currentTile (worldx) {
-		console.log("FIND CURRENT TILE AND LIGHT IT UP!")
-		// this.mesh.position
-		// for (var i = 0; i < newScene.world.mesh.children.length; i++) {
-		// 	if (newScene.world.mesh.children[i].position.x 
-		// 	newScene.world.mesh.children[i].position.z
-		// }
-	}
-
-	// Rotate the character
+		// Rotate the character
 	rotate () {
-    // Set the direction's angle, and the difference between it and our Object3D's current rotation
+       // Set the direction's angle, and the difference between it and our Object3D's current rotation
     var angle = Math.atan2(this.direction.x, this.direction.z),
         difference = angle - this.mesh.rotation.y;
    		// If we're doing more than a 180°
@@ -123,44 +115,19 @@ class Character {
 // World Class //
 // ----------- //
 class World {
-	constructor (x, y, tileWidth) {
+	constructor () {
+		this.texture = loader.load( './textures/terrain/grid.png' );
+		this.texture.wrapS = this.texture.wrapT = THREE.RepeatWrapping;
+		this.texture.repeat.set( 25, 25 );
+		this.texture.anisotropy = 16;
 
-		// Function for creating a grid, called later
-		function createGrid (x, z, tileWidth, that) {
-			for (var i = x; i > -x;) {
-				for (var j = z; j > -z;){
+		this.material = new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, map: this.texture } );
 
-					// Create the mesh for individual tiles...
-					let material = new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111} );
-					let geometry = new THREE.PlaneBufferGeometry( tileWidth, tileWidth )
-					let tile = new THREE.Mesh( geometry, material );
-
-					// Tile Properties
-					tile.position.x = j
-					tile.position.z = i
-					tile.position.y = -10;
-					tile.rotation.x = - Math.PI / 2;
-					tile.receiveShadow = true;
-
-					// Add tile to the world mesh
-					that.mesh.add(tile)
-
-					j -= tileWidth + .1;
-
-				}
-
-				i -= tileWidth + .1;
-
-			}
-		}
-
-		// Create a mesh that will contain a mesh for each tile
-		this.tileWidth = tileWidth // we set this property so we can grab it in other funcitons if neccessary
-		this.mesh = new THREE.Object3D();
-
-		// Create the grid
-		createGrid(x, y, tileWidth, this)
-
+		this.mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 100, 100 ), this.material );
+		// mesh.position.y = - 250;
+		this.mesh.position.y = -9.5;
+		this.mesh.rotation.x = - Math.PI / 2;
+		this.mesh.receiveShadow = true;
 	}
 	getMesh() {
 		return this.mesh;
@@ -183,21 +150,6 @@ class Box {
 	}
 }
 
-// ------------ //
-// TEST SPHERES //
-// ------------ //
-
-class testSphere {
-	constructor (radius, widthsegs, heightsegs) {
-		let geometry = new THREE.SphereGeometry(radius, widthsegs, heightsegs)
-		let material = new THREE.MeshBasicMaterial({color:0xffff00})
-		this.mesh = new THREE.Mesh(geometry, material)
-	}
-	getMesh() {
-		return this.mesh;
-	}
-}
-
 // ----------- //
 // Scene Class //
 // ----------- //
@@ -212,7 +164,7 @@ class Scene {
     // Physijs.Scene
     this.scene = new Physijs.Scene;;
     // Camera
-    this.camera();
+    this.createCamera();
     // Lights
     this.lights();
     // Objects (world, character, box, etc)
@@ -228,7 +180,7 @@ class Scene {
 		}
     window.addEventListener( 'resize', onWindowResize, false );
 	}
-	camera () {
+	createCamera () {
 		// Camera
     this.camera = new THREE.PerspectiveCamera(
         45,
@@ -236,7 +188,7 @@ class Scene {
         1,
         1000
     );
-    this.camera.position.set( 0, 70, -120 );
+    this.camera.position.set( 0, 50, -200 );
     this.camera.lookAt( this.scene.position );
     this.scene.add( this.camera );
 	}
@@ -245,15 +197,7 @@ class Scene {
 	  // var light, materials;
 
 	  // Ambient
-	  // this.scene.add( new THREE.AmbientLight(0xffffff, .01) )
-
-	  // Point
-	  this.pointLight = new THREE.PointLight(0xffffff, 1, 10000);
-	  this.pointLight.position.y = 100;
-	  this.pointLight.position.x = -100;
-	  this.pointLight.position.z = -100;
-	  this.scene.add(this.pointLight)
-
+	  this.scene.add( new THREE.AmbientLight(0xa0c4ff) )
 
 	  //  // Directional
 	  // this.directionalLight = new THREE.DirectionalLight( 0xdfebff, 1.75 );
@@ -278,9 +222,8 @@ class Scene {
 		this.scene.simulate(); // run the physics
 	}
 	createObjects () {
-
-		// World - Create the world and add it
-		this.world = new World(50, 50, 5)
+		// Wolrd - Create the world and add it
+		this.world = new World()
 		this.scene.add( this.world.getMesh() );			
 	  
 	  // Character - Create a new Character and add to scene.
@@ -288,13 +231,8 @@ class Scene {
 		this.scene.add( this.user.getMesh() );
 
 	  // Falling Box Example
-	  this.boxMesh = new Box(5,5,5)
-	  this.scene.add( this.boxMesh.getMesh() );
-
-	  // Test Sphere
-	  this.testsphere = new testSphere(4, 20, 20);
-	  this.scene.add( this.testsphere.getMesh() )
-
+	  var boxMesh = new Box(5,5,5)
+	  this.scene.add( boxMesh.getMesh() );
 	}
 	setControls () {
 		var user = this.user, // so we can access this inside eventlistener
@@ -309,6 +247,7 @@ class Scene {
 		window.addEventListener( 'keydown', function(e) {
 			var prevent = true;
       // Update the state of the attached control to "true"
+      console.log(e.keyCode)
       switch (e.keyCode) {
           case 37:
               controls.left = true;
@@ -368,7 +307,6 @@ class Scene {
 	frame () {
 		'use strict'
 		this.user.motion();
-		this.user.currentTile();
 		this.renderer.render(this.scene, this.camera)
 	}
 }
