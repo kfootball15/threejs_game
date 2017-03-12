@@ -2,7 +2,7 @@
 // Scene Class //
 // ----------- //
 class Scene {
-	constructor () {
+	constructor (boardwidth, tilewidth) {
 		// Renderer
 		this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize( window.innerWidth, window.innerHeight );
@@ -15,7 +15,8 @@ class Scene {
     // Lights
     this.lights();
     // Objects (world, character, box, etc)
-    this.createObjects();
+    this.createWorld(boardwidth, tilewidth);
+    this.createCharacter();
     // Start the event handlers
     this.setControls();
     // Initialize Physics;
@@ -58,25 +59,19 @@ class Scene {
 	initializePhysics () {
 		this.scene.simulate(); // run the physics
 	}
-	createObjects () {
-
+	createWorld (boardwidth, tilewidth) {
 		// World
-		let boardWidth = 90; // Set the number of tiles Across here;
-		let tileWidth = 2.5; // Set the tileWidth here;
-		this.world = new World(boardWidth/2, boardWidth/2, tileWidth);
-		this.scene.add( this.world.getMesh() );		
-
-		// Ground
-		this.scene.add( this.world.getGroundMesh() );
-
-	  // Character - Create a new Character and add to scene.
-		this.user = new Character()
-		this.scene.add( this.user.getMesh() );
-
-	  // Test Sphere
-	  // this.testsphere = new testSphere(4, 20, 20);
-	  // this.scene.add( this.testsphere.getMesh() )
+		let boardWidth = boardwidth; // Set the number of tiles Across here;
+		let tileWidth = tilewidth; // Set the tileWidth here;
+		this.world = new World(boardWidth, tileWidth);
+		this.scene.add( this.world.getMesh() );
+    this.scene.add( this.world.getGroundMesh() )		
 	}
+  createCharacter () {
+    // Character - Create a new Character and add to scene.
+    this.user = new Character()
+    this.scene.add( this.user.getMesh() );
+  }
 	setControls () {
 		var user = this.user, // so we can access this inside eventlistener
 				controls = { // sets state of controls

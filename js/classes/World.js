@@ -2,19 +2,19 @@
 // World Class //
 // ----------- //
 class World {
-	constructor (x, y, tileWidth) {
+	constructor (boardwidth, tilewidth) {
 
 		// Both x and y represent the distance from (0, 0) to the edge of the game board.
 		// So both 2x and 2y are equal to the total board distance
 
 		// Create the Grid Meshes
-		this.createGrid(x, y, tileWidth)
+		this.createGrid(boardwidth/2, boardwidth/2, tilewidth)
 
 		// Create the Ground Mesh (for Physics)
-		this.createGround(x*2) 
+		this.createGround(boardwidth) 
 
-		this.boardWidth = x*2 || y*2; // Number of tiles across
-		this.tileWidth = tileWidth; // Individual tile Width
+		this.boardWidth = boardwidth; // Number of tiles across
+		this.tileWidth = tilewidth; // Individual tile Width
 
 	}
 	createGrid (x, z, tileWidth) {
@@ -67,7 +67,7 @@ class World {
 		);
 		this.groundMesh.rotation.x = -Math.PI / 2;
 		this.groundMesh.position.y = -10
-		// this.scene.add( this.groundMesh );
+
 	}
 	getMesh () {
 		return this.mesh;

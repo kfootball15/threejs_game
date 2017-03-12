@@ -9,27 +9,50 @@ Open Chrome from Terminal with following command:
 
 // Game logic
 function nextBlock (scene) {
-	newScene.readyForNextBlock = false;
+	let index, boxMesh, tileToDropOn;
+	// newScene.readyForNextBlock = false;
 
-  let boxMesh = new Box(scene.world.tileWidth, scene.world.tileWidth, scene.world.tileWidth)
+  boxMesh = new Box(scene.world.tileWidth, scene.world.tileWidth, scene.world.tileWidth)
+  index = Math.floor(Math.random() * Math.pow(scene.world.boardWidth/scene.world.tileWidth, 2)) // Finds the total number of squares on the board
+  tileToDropOn = scene.world.mesh.children[index];
+
+  // Generate Box Position
   boxMesh.mesh.position.y = 60;
-  boxMesh.mesh.position.x = 0;
-  boxMesh.mesh.position.z = 0;
+  boxMesh.mesh.position.x = tileToDropOn.position.x;
+  boxMesh.mesh.position.z = tileToDropOn.position.z;
+
+  console.log(tileToDropOn.material)
+  tileToDropOn.material.color = new THREE.Color(0xfe6b7a)
+  setTimeout(function(){
+  	tileToDropOn.material.color = new THREE.Color(0xffffff)
+  }, 4000)
+
+  // Add the boxmesh to the scene
   scene.scene.add( boxMesh.getMesh() );
 
-	setTimeout(function(){
-		scene.readyForNextBlock = true;
-	},1000)
 }
 
+
 // Here is where we initalize everything
-var newScene = new Scene()
+var addAnotherBlock = true;
+var newScene = new Scene(100, 5) // (boardwidth, tilewidth)
+
 function animate () {
 	newScene.scene.simulate() // run the physics
-	if (newScene.readyForNextBlock) nextBlock(newScene);
+	
+	// adds another box in a few seconds
+	if (addAnotherBlock){
+		addAnotherBlock = false;
+		setTimeout(function(){
+			addAnotherBlock = true
+			nextBlock(newScene)
+		}, 3000)
+	}
+
 	requestAnimationFrame(animate);
 	newScene.frame();
 }
+
 animate()
 
 
